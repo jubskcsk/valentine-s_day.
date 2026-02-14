@@ -41,14 +41,13 @@ canvas {
     height:100%;
     background:black;
     color:white;
-    display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
     font-family:monospace;
     text-align:center;
-    opacity:0;
-    animation: fadeIn 3s forwards;
+}
+
 }
 
 @keyframes fadeIn{
@@ -244,10 +243,14 @@ loop();
 }
 
 function endGame(){
+    const final = document.getElementById("finalScreen");
     document.getElementById("game").style.display="none";
-    document.getElementById("finalScreen").style.display="flex";
+    final.style.display="flex";
+}
+
 }
 </script>
 
 </body>
 </html>
+
