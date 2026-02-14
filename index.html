@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>System</title>
+<style>
+body {
+    margin:0;
+    overflow:hidden;
+    background:black;
+    font-family:monospace;
+}
+
+#terminal {
+    color:#00ff88;
+    padding:20px;
+    white-space:pre-wrap;
+}
+
+input {
+    background:black;
+    border:none;
+    color:#00ff88;
+    font-family:monospace;
+    font-size:18px;
+    outline:none;
+}
+
+canvas {
+    display:none;
+    background:#0b0c1a;
+    image-rendering: pixelated;
+}
+
+#finalScreen{
+    display:none;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    font-family:monospace;
+    text-align:center;
+    opacity:0;
+    animation: fadeIn 3s forwards;
+}
+
+@keyframes fadeIn{
+    to{opacity:1;}
+}
+</style>
+</head>
+<body>
+
+<div id="terminal"></div>
+<canvas id="game"></canvas>
+
+<div id="finalScreen">
+    <h1>Happy Valentine's Day ❤️</h1>
+    <h2>Eu escolheria você em todas as realidades.</h2>
+</div>
+
+<script>
+const terminal = document.getElementById("terminal");
+
+const lines = [
+"Iniciando sistema...",
+"Verificando compatibilidade emocional...",
+"Resultado: 100% compatível.",
+"Acesso concedido.",
+"",
+"Digite 'start' para continuar."
+];
+
+let l=0,c=0;
+
+function type(){
+    if(l<lines.length){
+        if(c<lines[l].length){
+            terminal.innerHTML+=lines[l][c];
+            c++;
+            setTimeout(type,30);
+        }else{
+            terminal.innerHTML+="\n";
+            l++; c=0;
+            setTimeout(type,200);
+        }
+    }else{
+        createInput();
+    }
+}
+
+function createInput(){
+    const input=document.createElement("input");
+    terminal.appendChild(input);
+    input.focus();
+
+    input.addEventListener("keydown",e=>{
+        if(e.key==="Enter"){
+            if(input.value.toLowerCase()==="start"){
+                startGame();
+            }
+        }
+    });
+}
+
+type();
+
+// ================= GAME =================
+
+function startGame(){
+
+terminal.style.display="none";
+
+const canvas=document.getElementById("game");
+canvas.style.display="block";
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+const ctx=canvas.getContext("2d");
+
+let gravity=0.6;
+
+let player={
+    x:100,
+    y:300,
+    width:32,
+    height:32,
+    velX:0,
+    velY:0,
+    jumping:false
+};
+
+let platforms=[
+    {x:0,y:canvas.height-40,width:canvas.width,height:40},
+    {x:300,y:canvas.height-150,width:200,height:20},
+    {x:650,y:canvas.height-250,width:200,height:20}
+];
+
+let hearts=[
+    {x:350,y:canvas.height-180,collected:false},
+    {x:720,y:canvas.height-280,collected:false}
+];
+
+let keys={};
+
+window.addEventListener("keydown",e=>keys[e.code]=true);
+window.addEventListener("keyup",e=>keys[e.code]=false);
+
+function update(){
+
+    if(keys["ArrowRight"]) player.velX=5;
+    else if(keys["ArrowLeft"]) player.velX=-5;
+    else player.velX=0;
+
+    if(keys["Space"] && !player.jumping){
+        player.velY=-12;
+        player.jumping=true;
+    }
+
+    player.velY+=gravity;
+
+    player.x+=player.velX;
+    player.y+=player.velY;
+
+    platforms.forEach(p=>{
+        if(player.x < p.x+p.width &&
+           player.x+player.width > p.x &&
+           player.y < p.y+p.height &&
+           player.y+player.height > p.y){
+
+            if(player.velY>0){
+                player.y=p.y-player.height;
+                player.velY=0;
+                player.jumping=false;
+            }
+        }
+    });
+
+    hearts.forEach(h=>{
+        if(!h.collected &&
+           player.x < h.x+20 &&
+           player.x+player.width > h.x &&
+           player.y < h.y+20 &&
+           player.y+player.height > h.y){
+               h.collected=true;
+           }
+    });
+
+    if(hearts.every(h=>h.collected)){
+        endGame();
+    }
+}
+
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // estrelas
+    ctx.fillStyle="white";
+    for(let i=0;i<50;i++){
+        ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,2,2);
+    }
+
+    // plataformas
+    ctx.fillStyle="#444";
+    platforms.forEach(p=>{
+        ctx.fillRect(p.x,p.y,p.width,p.height);
+    });
+
+    // jogador pixel
+    ctx.fillStyle="#00ff88";
+    ctx.fillRect(player.x,player.y,player.width,player.height);
+
+    // olhos
+    ctx.fillStyle="black";
+    ctx.fillRect(player.x+8,player.y+10,4,4);
+    ctx.fillRect(player.x+20,player.y+10,4,4);
+
+    // corações
+    ctx.fillStyle="red";
+    hearts.forEach(h=>{
+        if(!h.collected){
+            ctx.fillRect(h.x,h.y,16,16);
+        }
+    });
+
+}
+
+function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+}
+
+function endGame(){
+    document.getElementById("game").style.display="none";
+    document.getElementById("finalScreen").style.display="flex";
+}
+</script>
+
+</body>
+</html>
